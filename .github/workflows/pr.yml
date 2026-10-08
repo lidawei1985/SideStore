@@ -22,6 +22,22 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Build Rust libs without LSE (A10-safe)
+        run: |
+          set -e
+          rustup target add aarch64-apple-ios
+          export RUSTFLAGS="-C target-feature=-lse"
+          echo "=== building minimuxer (no LSE) ==="
+          cd SideStore/minimuxer
+          cargo build --release --target aarch64-apple-ios
+          cp target/aarch64-apple-ios/release/libminimuxer.a libminimuxer-ios.a
+          ls -la libminimuxer-ios.a
+          echo "=== building em_proxy (no LSE) ==="
+          cd ../em_proxy
+          cargo build --release --target aarch64-apple-ios
+          cp target/aarch64-apple-ios/release/libem_proxy.a libem_proxy-ios.a
+          ls -la libem_proxy-ios.a
+
       - name: Install dependencies
         run: brew install ldid
 
