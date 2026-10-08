@@ -23,6 +23,8 @@ jobs:
           submodules: recursive
 
       - name: Build Rust libs without LSE (A10-safe)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           rustup target add aarch64-apple-ios
@@ -42,9 +44,10 @@ jobs:
           ls -la libem_proxy-ios.a
           echo "=== fetch pin-matched headers/glue (no machine code, LSE-free by nature) ==="
           # minimuxer generated.zip: cbindgen-generated header + swift glue, matching submodule pin baa22ac
+          # NOTE: use gh api (authenticated) -- anonymous api.github.com is rate-limited on shared runner IPs
           cd ../minimuxer
-          MURL=$(curl -s "https://api.github.com/repos/SideStore/minimuxer/releases?per_page=100" | jq -r '[.[] | select(.body | test("baa22acbff1dc00d76e4186e55ae1904eec428cc"))][0].assets[] | select(.name=="generated.zip") | .browser_download_url' | head -1)
-          if [ -z "$MURL" ]; then echo "pin-matched minimuxer release not found, falling back to latest"; MURL=$(curl -s "https://api.github.com/repos/SideStore/minimuxer/releases/latest" | jq -r '.assets[] | select(.name=="generated.zip") | .browser_download_url'); fi
+          MURL=$(gh api "repos/SideStore/minimuxer/releases?per_page=100" --jq '[.[] | select(.body | test("baa22acbff1dc00d76e4186e55ae1904eec428cc"))][0].assets[] | select(.name=="generated.zip") | .browser_download_url' 2>/dev/null | head -1)
+          if [ -z "$MURL" ]; then echo "pin-matched minimuxer release not found, falling back to latest"; MURL=$(gh api "repos/SideStore/minimuxer/releases/latest" --jq '.assets[] | select(.name=="generated.zip") | .browser_download_url'); fi
           echo "downloading $MURL"
           wget -O generated.zip "$MURL"
           unzip -o generated.zip
@@ -54,8 +57,8 @@ jobs:
           rm -rf generated/
           # em_proxy.h: cbindgen-generated C header, matching submodule pin 24fdd24
           cd ../em_proxy
-          EURL=$(curl -s "https://api.github.com/repos/SideStore/em_proxy/releases?per_page=100" | jq -r '[.[] | select(.body | test("24fdd245e62d8b2b2df1ac162770fbf95c5cd5bb"))][0].assets[] | select(.name=="em_proxy.h") | .browser_download_url' | head -1)
-          if [ -z "$EURL" ]; then echo "pin-matched em_proxy release not found, falling back to latest"; EURL=$(curl -s "https://api.github.com/repos/SideStore/em_proxy/releases/latest" | jq -r '.assets[] | select(.name=="em_proxy.h") | .browser_download_url'); fi
+          EURL=$(gh api "repos/SideStore/em_proxy/releases?per_page=100" --jq '[.[] | select(.body | test("24fdd245e62d8b2b2df1ac162770fbf95c5cd5bb"))][0].assets[] | select(.name=="em_proxy.h") | .browser_download_url' 2>/dev/null | head -1)
+          if [ -z "$EURL" ]; then echo "pin-matched em_proxy release not found, falling back to latest"; EURL=$(gh api "repos/SideStore/em_proxy/releases/latest" --jq '.assets[] | select(.name=="em_proxy.h") | .browser_download_url'); fi
           echo "downloading $EURL"
           wget -O em_proxy.h "$EURL"
           head -5 em_proxy.h
