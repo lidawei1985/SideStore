@@ -29,11 +29,13 @@ jobs:
           export RUSTFLAGS="-C target-feature=-lse"
           echo "=== building minimuxer (no LSE) ==="
           cd SideStore/minimuxer
+          cargo update -p libc --precise 0.2.155
           cargo build --release --target aarch64-apple-ios
           cp target/aarch64-apple-ios/release/libminimuxer.a libminimuxer-ios.a
           ls -la libminimuxer-ios.a
           echo "=== building em_proxy (no LSE) ==="
           cd ../em_proxy
+          cargo update -p libc --precise 0.2.155
           cargo build --release --target aarch64-apple-ios
           cp target/aarch64-apple-ios/release/libem_proxy.a libem_proxy-ios.a
           ls -la libem_proxy-ios.a
