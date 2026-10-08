@@ -30,6 +30,7 @@ jobs:
           echo "=== building minimuxer (no LSE) ==="
           cd SideStore/minimuxer
           cargo update -p libc --precise 0.2.170
+          cargo update -p tempfile --precise 3.10.1
           cargo build --release --target aarch64-apple-ios
           cp target/aarch64-apple-ios/release/libminimuxer.a libminimuxer-ios.a
           ls -la libminimuxer-ios.a
