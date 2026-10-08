@@ -51,7 +51,7 @@ jobs:
           cp -v generated/* .
           find generated -type f ! -name 'minimuxer-Bridging-Header.h' ! -name 'minimuxer-helpers.swift' -exec rm -v {} \;
           rm generated.zip
-          rmdir generated/
+          rm -rf generated/
           # em_proxy.h: cbindgen-generated C header, matching submodule pin 24fdd24
           cd ../em_proxy
           EURL=$(curl -s "https://api.github.com/repos/SideStore/em_proxy/releases?per_page=100" | jq -r '[.[] | select(.body | test("24fdd245e62d8b2b2df1ac162770fbf95c5cd5bb"))][0].assets[] | select(.name=="em_proxy.h") | .browser_download_url' | head -1)
