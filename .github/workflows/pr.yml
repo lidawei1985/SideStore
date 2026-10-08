@@ -55,12 +55,11 @@ jobs:
           find generated -type f ! -name 'minimuxer-Bridging-Header.h' ! -name 'minimuxer-helpers.swift' -exec rm -v {} \;
           rm generated.zip
           rm -rf generated/
-          # em_proxy.h: cbindgen-generated C header, matching submodule pin 24fdd24
+          # em_proxy.h: only one official release exists (tag "build"); /releases/latest returns empty because it is a prerelease.
+          # Header is pure C declarations (no machine code) - safe to pair with our no-LSE .a
           cd ../em_proxy
-          EURL=$(gh api "repos/SideStore/em_proxy/releases?per_page=100" --jq '[.[] | select(.body | test("24fdd245e62d8b2b2df1ac162770fbf95c5cd5bb"))][0].assets[] | select(.name=="em_proxy.h") | .browser_download_url' 2>/dev/null | head -1)
-          if [ -z "$EURL" ]; then echo "pin-matched em_proxy release not found, falling back to latest"; EURL=$(gh api "repos/SideStore/em_proxy/releases/latest" --jq '.assets[] | select(.name=="em_proxy.h") | .browser_download_url'); fi
-          echo "downloading $EURL"
-          wget -O em_proxy.h "$EURL"
+          wget -O em_proxy.h "https://github.com/SideStore/em_proxy/releases/download/build/em_proxy.h"
+          grep -q "start_emotional_damage" em_proxy.h || { echo "FATAL: em_proxy.h missing start_emotional_damage"; exit 1; }
           head -5 em_proxy.h
           echo "=== block fetch-prebuilt.sh from overwriting our no-LSE .a ==="
           cd ..
