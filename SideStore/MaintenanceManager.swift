@@ -19,7 +19,20 @@ public final class MaintenanceManager {
     public static let maintenanceCounterFileName = ".maintenance_counter"
 
     private var maintenanceCounterFileURL: URL? {
-        FileManager.default.altstoreSharedDirectory?.appendingPathComponent(Self.maintenanceCounterFileName)
+        // Free-account sideloads are signed without the App Group entitlement, so
+        // altstoreSharedDirectory is nil and the counter could never be persisted. As a result
+        // completedCounter always read 0 and every cold launch re-ran pass 1, which clears the
+        // Keychain and signs the user out. Fall back to a per-app writable directory so the
+        // counter persists and maintenance runs at most once.
+        if let sharedDirectory = FileManager.default.altstoreSharedDirectory {
+            return sharedDirectory.appendingPathComponent(Self.maintenanceCounterFileName)
+        }
+
+        guard let fallbackDirectory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return nil
+        }
+        try? FileManager.default.createDirectory(at: fallbackDirectory, withIntermediateDirectories: true)
+        return fallbackDirectory.appendingPathComponent(Self.maintenanceCounterFileName)
     }
 
     private var completedCounter: Int {
